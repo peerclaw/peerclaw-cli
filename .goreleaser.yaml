@@ -1,0 +1,39 @@
+version: 2
+
+project_name: peerclaw
+
+builds:
+  - main: ./cmd/peerclaw
+    binary: peerclaw
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/peerclaw/peerclaw-cli/internal/cmd.Version={{.Version}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+
+release:
+  github:
+    owner: peerclaw
+    name: peerclaw-cli
+  draft: false
+  prerelease: auto
