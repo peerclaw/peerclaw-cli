@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 )
@@ -131,8 +132,8 @@ func (s *Server) handleCreateRun(ctx context.Context, req *Request) {
 		return
 	}
 
-	url := s.baseURL + "/acp/" + params.AgentID + "/runs"
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
+	reqURL := s.baseURL + "/acp/" + url.PathEscape(params.AgentID) + "/runs"
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewReader(body))
 	if err != nil {
 		s.writeResponse(Response{
 			ID:    req.ID,
@@ -206,8 +207,8 @@ func (s *Server) handleGetRun(ctx context.Context, req *Request) {
 		return
 	}
 
-	url := s.baseURL + "/acp/" + params.AgentID + "/runs/" + params.RunID
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	reqURL := s.baseURL + "/acp/" + url.PathEscape(params.AgentID) + "/runs/" + url.PathEscape(params.RunID)
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
 	if err != nil {
 		s.writeResponse(Response{
 			ID:    req.ID,
@@ -265,8 +266,8 @@ func (s *Server) handleCancelRun(ctx context.Context, req *Request) {
 		return
 	}
 
-	url := s.baseURL + "/acp/" + params.AgentID + "/runs/" + params.RunID + "/cancel"
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, nil)
+	reqURL := s.baseURL + "/acp/" + url.PathEscape(params.AgentID) + "/runs/" + url.PathEscape(params.RunID) + "/cancel"
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", reqURL, nil)
 	if err != nil {
 		s.writeResponse(Response{
 			ID:    req.ID,
@@ -313,12 +314,12 @@ func (s *Server) handleListAgents(ctx context.Context, req *Request) {
 		_ = json.Unmarshal(req.Params, &params)
 	}
 
-	url := s.baseURL + "/api/v1/directory"
+	reqURL := s.baseURL + "/api/v1/directory"
 	if params.Capability != "" {
-		url += "?capability=" + params.Capability
+		reqURL += "?capability=" + url.QueryEscape(params.Capability)
 	}
 
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
 	if err != nil {
 		s.writeResponse(Response{
 			ID:    req.ID,
@@ -403,8 +404,8 @@ func (s *Server) handleGetAgent(ctx context.Context, req *Request) {
 		return
 	}
 
-	url := s.baseURL + "/acp/" + params.AgentID + "/agents"
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	reqURL := s.baseURL + "/acp/" + url.PathEscape(params.AgentID) + "/agents"
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
 	if err != nil {
 		s.writeResponse(Response{
 			ID:    req.ID,
