@@ -49,6 +49,8 @@ func Run(args []string) int {
 		return RunIdentity(args[1:], serverURL)
 	case "mcp":
 		return RunMCP(args[1:], serverURL)
+	case "acp":
+		return RunACP(args[1:], serverURL)
 	case "help", "-h", "--help":
 		printUsage()
 		return 0
@@ -77,6 +79,7 @@ Commands:
   reputation  Reputation scores (show, list)
   identity    Identity anchoring (anchor, verify)
   mcp         MCP server for AI tool integration (serve)
+  acp         ACP stdio bridge for agent communication (serve)
   version     Print version
 
 Environment:
