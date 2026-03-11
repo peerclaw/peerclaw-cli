@@ -65,6 +65,8 @@ const (
 	RunStatusCompleted  RunStatus = "completed"
 	RunStatusFailed     RunStatus = "failed"
 	RunStatusCancelled  RunStatus = "cancelled"
+	RunStatusAwaiting   RunStatus = "awaiting"
+	RunStatusCancelling RunStatus = "cancelling"
 )
 
 // Run represents an ACP run.

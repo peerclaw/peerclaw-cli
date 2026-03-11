@@ -3,6 +3,7 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -24,6 +25,11 @@ func Run(args []string) int {
 	serverURL := os.Getenv("PEERCLAW_SERVER")
 	if serverURL == "" {
 		serverURL = defaultServer
+	}
+
+	if err := validateServerURL(serverURL); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 1
 	}
 
 	switch args[0] {
@@ -88,6 +94,20 @@ Environment:
 
 Use "peerclaw <command> -h" for more information.
 `, defaultServer)
+}
+
+func validateServerURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid server URL: %w", err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("server URL must use http or https scheme, got %q", u.Scheme)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("server URL must have a host")
+	}
+	return nil
 }
 
 func addServerFlag(fs *flag.FlagSet, serverURL *string) {

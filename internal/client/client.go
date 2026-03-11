@@ -17,8 +17,9 @@ import (
 
 // Client is a REST API client for the PeerClaw gateway.
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
+	baseURL      string
+	httpClient   *http.Client
+	streamClient *http.Client
 }
 
 // New creates a new Client pointing to the given base URL.
@@ -27,6 +28,9 @@ func New(baseURL string) *Client {
 		baseURL: baseURL,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
+		},
+		streamClient: &http.Client{
+			Timeout: 5 * time.Minute,
 		},
 	}
 }
@@ -96,14 +100,33 @@ func (c *Client) GetAgent(ctx context.Context, id string) (*agentcard.Card, erro
 
 // RegisterRequest is the request body for registering an agent.
 type RegisterRequest struct {
-	Name         string            `json:"name"`
-	Description  string            `json:"description,omitempty"`
-	Version      string            `json:"version,omitempty"`
-	PublicKey    string            `json:"public_key,omitempty"`
-	Capabilities []string          `json:"capabilities,omitempty"`
-	Endpoint     EndpointReq       `json:"endpoint"`
-	Protocols    []string          `json:"protocols"`
-	Metadata     map[string]string `json:"metadata,omitempty"`
+	Name               string            `json:"name"`
+	Description        string            `json:"description,omitempty"`
+	Version            string            `json:"version,omitempty"`
+	PublicKey          string            `json:"public_key,omitempty"`
+	Capabilities       []string          `json:"capabilities,omitempty"`
+	Endpoint           EndpointReq       `json:"endpoint"`
+	Protocols          []string          `json:"protocols"`
+	Auth               AuthReq           `json:"auth,omitempty"`
+	Metadata           map[string]string `json:"metadata,omitempty"`
+	PeerClaw           PeerClawReq       `json:"peerclaw,omitempty"`
+	PlaygroundEnabled  *bool             `json:"playground_enabled,omitempty"`
+	Visibility         string            `json:"visibility,omitempty"`
+}
+
+// AuthReq holds authentication configuration for an agent.
+type AuthReq struct {
+	Type   string            `json:"type,omitempty"`
+	Params map[string]string `json:"params,omitempty"`
+}
+
+// PeerClawReq holds PeerClaw-specific extension fields for registration.
+type PeerClawReq struct {
+	NATType        string   `json:"nat_type,omitempty"`
+	RelayPreference string  `json:"relay_preference,omitempty"`
+	Priority       int      `json:"priority,omitempty"`
+	Tags           []string `json:"tags,omitempty"`
+	PublicEndpoint bool     `json:"public_endpoint,omitempty"`
 }
 
 // EndpointReq is the endpoint specification for registration.
@@ -437,9 +460,8 @@ func (c *Client) InvokeStream(ctx context.Context, agentID string, req InvokeReq
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	// Use a client without timeout for streaming.
-	streamClient := &http.Client{}
-	resp, err := streamClient.Do(httpReq)
+	// Use the pre-initialised stream client with a longer timeout.
+	resp, err := c.streamClient.Do(httpReq)
 	if err != nil {
 		return nil, nil, err
 	}
