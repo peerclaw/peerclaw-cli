@@ -38,6 +38,8 @@ func Run(args []string) int {
 		return RunReputation(args[1:], serverURL)
 	case "identity":
 		return RunIdentity(args[1:], serverURL)
+	case "mcp":
+		return RunMCP(args[1:], serverURL)
 	case "help", "-h", "--help":
 		printUsage()
 		return 0
@@ -63,6 +65,7 @@ Commands:
   federation  Federation management (status, peers)
   reputation  Reputation scores (show, list)
   identity    Identity anchoring (anchor, verify)
+  mcp         MCP server for AI tool integration (serve)
   version     Print version
 
 Environment:
