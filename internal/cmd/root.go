@@ -6,6 +6,11 @@ import (
 	"os"
 )
 
+func addTokenFlag(fs *flag.FlagSet, token *string) {
+	t := os.Getenv("PEERCLAW_TOKEN")
+	fs.StringVar(token, "token", t, "JWT auth token (or PEERCLAW_TOKEN env)")
+}
+
 const defaultServer = "http://localhost:8080"
 
 // Run executes the CLI with the given arguments.
@@ -24,6 +29,10 @@ func Run(args []string) int {
 	switch args[0] {
 	case "agent":
 		return RunAgent(args[1:], serverURL)
+	case "invoke":
+		return RunInvoke(args[1:], serverURL)
+	case "inbox":
+		return RunInbox(args[1:], serverURL)
 	case "send":
 		return RunSend(args[1:], serverURL)
 	case "health":
@@ -57,7 +66,9 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, `Usage: peerclaw <command> [options]
 
 Commands:
-  agent       Manage agents (list, get, register, claim, discover, heartbeat, verify)
+  agent       Manage agents (list, get, register, update, claim, discover, heartbeat, verify)
+  invoke      Invoke an agent (send message and get response)
+  inbox       Manage access requests (request, status, list)
   send        Send a message through the bridge
   health      Check server health
   config      Manage CLI configuration
@@ -70,6 +81,7 @@ Commands:
 
 Environment:
   PEERCLAW_SERVER   Server URL (default: %s)
+  PEERCLAW_TOKEN    JWT auth token for authenticated commands
 
 Use "peerclaw <command> -h" for more information.
 `, defaultServer)

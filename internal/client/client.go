@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -8,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/peerclaw/peerclaw-core/agentcard"
@@ -391,6 +393,153 @@ func (c *Client) GetReputationHistory(ctx context.Context, agentID string, limit
 	return &resp, nil
 }
 
+// --- Invoke ---
+
+// InvokeRequest is the request body for agent invocation.
+type InvokeRequest struct {
+	Message   string            `json:"message"`
+	Protocol  string            `json:"protocol,omitempty"`
+	Stream    bool              `json:"stream,omitempty"`
+	SessionID string            `json:"session_id,omitempty"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+}
+
+// InvokeResponse is the response from agent invocation.
+type InvokeResponse struct {
+	ID         string `json:"id"`
+	AgentID    string `json:"agent_id"`
+	Response   string `json:"response"`
+	Protocol   string `json:"protocol"`
+	DurationMs int64  `json:"duration_ms"`
+	SessionID  string `json:"session_id"`
+}
+
+// Invoke calls an agent and returns the response.
+func (c *Client) Invoke(ctx context.Context, agentID string, req InvokeRequest) (*InvokeResponse, error) {
+	var resp InvokeResponse
+	if err := c.post(ctx, "/api/v1/invoke/"+agentID, req, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// InvokeStream calls an agent with streaming enabled, returning the raw SSE response.
+// The caller is responsible for closing the response body.
+func (c *Client) InvokeStream(ctx context.Context, agentID string, req InvokeRequest) (*bufio.Scanner, io.Closer, error) {
+	req.Stream = true
+	data, err := json.Marshal(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/v1/invoke/"+agentID, bytes.NewReader(data))
+	if err != nil {
+		return nil, nil, err
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	// Use a client without timeout for streaming.
+	streamClient := &http.Client{}
+	resp, err := streamClient.Do(httpReq)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp.StatusCode >= 400 {
+		defer resp.Body.Close()
+		return nil, nil, c.readError(resp)
+	}
+	scanner := bufio.NewScanner(resp.Body)
+	return scanner, resp.Body, nil
+}
+
+// --- Access Requests ---
+
+// AccessRequest is an access request record.
+type AccessRequest struct {
+	ID           string  `json:"id"`
+	AgentID      string  `json:"agent_id"`
+	UserID       string  `json:"user_id"`
+	Status       string  `json:"status"`
+	Message      string  `json:"message"`
+	RejectReason string  `json:"reject_reason,omitempty"`
+	ExpiresAt    *string `json:"expires_at,omitempty"`
+	CreatedAt    string  `json:"created_at"`
+	UpdatedAt    string  `json:"updated_at"`
+}
+
+// SubmitAccessRequest submits an access request to an agent.
+func (c *Client) SubmitAccessRequest(ctx context.Context, agentID, message, token string) (*AccessRequest, error) {
+	body := map[string]string{"message": message}
+	var resp AccessRequest
+	if err := c.postAuth(ctx, "/api/v1/agents/"+agentID+"/access-requests", token, body, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetMyAccessRequest checks the current user's access request status for an agent.
+func (c *Client) GetMyAccessRequest(ctx context.Context, agentID, token string) (*AccessRequest, error) {
+	var resp AccessRequest
+	if err := c.getAuth(ctx, "/api/v1/agents/"+agentID+"/access-requests/me", token, nil, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// ListMyAccessRequestsResponse is the response from listing user access requests.
+type ListMyAccessRequestsResponse struct {
+	Requests []AccessRequest `json:"requests"`
+}
+
+// ListMyAccessRequests lists all access requests for the current user.
+func (c *Client) ListMyAccessRequests(ctx context.Context, token string) ([]AccessRequest, error) {
+	var resp ListMyAccessRequestsResponse
+	if err := c.getAuth(ctx, "/api/v1/user/access-requests", token, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Requests, nil
+}
+
+// --- Agent Update ---
+
+// UpdateAgent updates an existing agent's registration.
+func (c *Client) UpdateAgent(ctx context.Context, agentID, token string, req RegisterRequest) (*agentcard.Card, error) {
+	var resp agentcard.Card
+	if err := c.putAuth(ctx, "/api/v1/provider/agents/"+agentID, token, req, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// --- SSE helpers ---
+
+// SSEEvent represents a parsed Server-Sent Event.
+type SSEEvent struct {
+	Event string
+	Data  string
+}
+
+// ParseSSE reads SSE events from a scanner.
+// It yields events one at a time. Returns nil when the stream ends.
+func ParseSSE(scanner *bufio.Scanner) *SSEEvent {
+	var event, data string
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			// Empty line = end of event.
+			if event != "" || data != "" {
+				return &SSEEvent{Event: event, Data: data}
+			}
+			continue
+		}
+		if strings.HasPrefix(line, "event:") {
+			event = strings.TrimSpace(strings.TrimPrefix(line, "event:"))
+		} else if strings.HasPrefix(line, "data:") {
+			data = strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+		}
+	}
+	return nil
+}
+
 // --- HTTP helpers ---
 
 func (c *Client) get(ctx context.Context, path string, params url.Values, out any) error {
@@ -433,6 +582,47 @@ func (c *Client) doJSON(req *http.Request, out any) error {
 		return json.NewDecoder(resp.Body).Decode(out)
 	}
 	return nil
+}
+
+func (c *Client) getAuth(ctx context.Context, path, token string, params url.Values, out any) error {
+	u := c.baseURL + path
+	if len(params) > 0 {
+		u += "?" + params.Encode()
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	return c.doJSON(req, out)
+}
+
+func (c *Client) postAuth(ctx context.Context, path, token string, body any, out any) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+path, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	return c.doJSON(req, out)
+}
+
+func (c *Client) putAuth(ctx context.Context, path, token string, body any, out any) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, c.baseURL+path, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	return c.doJSON(req, out)
 }
 
 func (c *Client) readError(resp *http.Response) error {

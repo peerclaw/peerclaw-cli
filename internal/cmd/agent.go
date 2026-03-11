@@ -34,6 +34,8 @@ func RunAgent(args []string, serverURL string) int {
 		return runAgentHeartbeat(args[1:], serverURL)
 	case "verify":
 		return runAgentVerify(args[1:], serverURL)
+	case "update":
+		return runAgentUpdate(args[1:], serverURL)
 	case "contacts":
 		return RunContacts(args[1:], serverURL)
 	case "help", "-h":
@@ -58,6 +60,7 @@ Subcommands:
   discover   Discover agents by capabilities
   heartbeat  Send heartbeat for an agent
   verify     Verify an agent's endpoint
+  update     Update an existing agent
   contacts   Manage agent contacts whitelist
 `)
 }
@@ -184,5 +187,59 @@ func runAgentDelete(args []string, serverURL string) int {
 	}
 
 	fmt.Fprintf(os.Stderr, "Agent deleted: %s\n", fs.Arg(0))
+	return 0
+}
+
+func runAgentUpdate(args []string, serverURL string) int {
+	fs := flag.NewFlagSet("agent update", flag.ExitOnError)
+	addServerFlag(fs, &serverURL)
+	var token string
+	addTokenFlag(fs, &token)
+	name := fs.String("name", "", "New agent name")
+	description := fs.String("description", "", "New description")
+	version := fs.String("version", "", "New version")
+	capabilities := fs.String("capabilities", "", "Comma-separated capabilities")
+	endpointURL := fs.String("url", "", "New endpoint URL")
+	protocols := fs.String("protocols", "", "Comma-separated protocols")
+	fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent update <agent-id> [options]\n")
+		fmt.Fprintf(os.Stderr, "\nOptions:\n")
+		fs.PrintDefaults()
+		return 1
+	}
+
+	if token == "" {
+		fmt.Fprintf(os.Stderr, "Error: --token or PEERCLAW_TOKEN is required\n")
+		return 1
+	}
+
+	agentID := fs.Arg(0)
+
+	req := client.RegisterRequest{
+		Name:        *name,
+		Description: *description,
+		Version:     *version,
+	}
+	if *capabilities != "" {
+		req.Capabilities = strings.Split(*capabilities, ",")
+	}
+	if *endpointURL != "" {
+		req.Endpoint = client.EndpointReq{URL: *endpointURL}
+	}
+	if *protocols != "" {
+		req.Protocols = strings.Split(*protocols, ",")
+	}
+
+	c := client.New(serverURL)
+	card, err := c.UpdateAgent(context.Background(), agentID, token, req)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 1
+	}
+
+	fmt.Fprintf(os.Stderr, "Agent updated: %s\n", card.ID)
+	PrintJSON(card)
 	return 0
 }

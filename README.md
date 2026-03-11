@@ -6,8 +6,18 @@ The PeerClaw command-line tool. Interact with PeerClaw Server via REST API to ma
 
 ## Installation
 
+### Quick Install (recommended)
+
 ```bash
-cd cli
+# Install the latest release binary
+curl -fsSL https://peerclaw.ai/install.sh | sh
+```
+
+### From Source
+
+```bash
+git clone https://github.com/peerclaw/peerclaw-cli.git
+cd peerclaw-cli
 go build -o peerclaw ./cmd/peerclaw
 ```
 
