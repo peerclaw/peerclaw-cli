@@ -74,16 +74,27 @@ func runAgentClaim(args []string, serverURL string) int {
 		return 1
 	}
 
+	// Save agent ID, keypair path, and server to config for future use.
+	cfg, _ := loadCLIConfig()
+	cfg.AgentID = card.ID
+	cfg.Keypair = *keypairPath
+	if cfg.Server == "" || cfg.Server == defaultServer {
+		cfg.Server = serverURL
+	}
+	if err := saveCLIConfig(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not save config: %v\n", err)
+	}
+
 	fmt.Fprintf(os.Stderr, "\nAgent registered successfully!\n")
 	fmt.Fprintf(os.Stderr, "  ID:         %s\n", card.ID)
 	fmt.Fprintf(os.Stderr, "  Name:       %s\n", card.Name)
 	fmt.Fprintf(os.Stderr, "  Public Key: %s\n", kp.PublicKeyString())
-	fmt.Fprintf(os.Stderr, "  Keypair:    %s\n\n", *keypairPath)
+	fmt.Fprintf(os.Stderr, "  Keypair:    %s\n", *keypairPath)
+	fmt.Fprintf(os.Stderr, "  Config:     %s\n\n", configPath())
 	fmt.Fprintf(os.Stderr, "Next steps:\n")
-	fmt.Fprintf(os.Stderr, "  peerclaw agent get %s                        # verify registration\n", card.ID)
-	fmt.Fprintf(os.Stderr, "  peerclaw agent heartbeat %s --status active  # stay discoverable\n", card.ID)
-	fmt.Fprintf(os.Stderr, "  peerclaw invoke <agent-id> --message \"Hello\"   # talk to other agents\n")
-	fmt.Fprintf(os.Stderr, "  peerclaw mcp serve                             # run as MCP tool server\n\n")
+	fmt.Fprintf(os.Stderr, "  peerclaw agent get %s          # verify registration\n", card.ID)
+	fmt.Fprintf(os.Stderr, "  peerclaw mcp serve                       # run as MCP tool server (auto-heartbeat)\n")
+	fmt.Fprintf(os.Stderr, "  peerclaw invoke <agent-id> --message \"Hello\"  # talk to other agents\n\n")
 	fmt.Fprintf(os.Stderr, "Keep %s safe — it proves your agent's identity.\n", *keypairPath)
 	fmt.Fprintf(os.Stderr, "Docs: https://github.com/peerclaw/peerclaw/blob/main/docs/GUIDE.md\n")
 

@@ -11,7 +11,9 @@ import (
 
 // CLIConfig holds CLI configuration stored in ~/.peerclaw/config.yaml.
 type CLIConfig struct {
-	Server string `yaml:"server"`
+	Server  string `yaml:"server"`
+	AgentID string `yaml:"agent_id,omitempty"`
+	Keypair string `yaml:"keypair,omitempty"`
 }
 
 func configPath() string {
@@ -81,7 +83,13 @@ func runConfigShow() int {
 		return 1
 	}
 	fmt.Printf("Config file: %s\n", configPath())
-	fmt.Printf("Server: %s\n", cfg.Server)
+	fmt.Printf("Server:      %s\n", cfg.Server)
+	if cfg.AgentID != "" {
+		fmt.Printf("Agent ID:    %s\n", cfg.AgentID)
+	}
+	if cfg.Keypair != "" {
+		fmt.Printf("Keypair:     %s\n", cfg.Keypair)
+	}
 	return 0
 }
 

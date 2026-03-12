@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/peerclaw/peerclaw-agent/tools"
+	"github.com/peerclaw/peerclaw-cli/internal/client"
 	"github.com/peerclaw/peerclaw-core/agentcard"
 )
 
@@ -81,6 +83,13 @@ func runMCPServe(args []string, serverURL string) int {
 	// Run server.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
+
+	// Start auto-heartbeat if agent_id is configured.
+	cfg, _ := loadCLIConfig()
+	if cfg != nil && cfg.AgentID != "" {
+		go runAutoHeartbeat(ctx, serverURL, cfg.AgentID)
+		fmt.Fprintf(os.Stderr, "Auto-heartbeat enabled for agent %s\n", cfg.AgentID)
+	}
 
 	if transport == "stdio" {
 		if err := server.Run(ctx, &mcp.StdioTransport{}); err != nil {
@@ -203,6 +212,25 @@ func registerDirectoryResource(server *mcp.Server, apiClient *tools.APIClient) {
 			}},
 		}, nil
 	})
+}
+
+// runAutoHeartbeat sends periodic heartbeats to keep the agent online.
+func runAutoHeartbeat(ctx context.Context, serverURL, agentID string) {
+	c := client.New(serverURL)
+	ticker := time.NewTicker(3 * time.Minute)
+	defer ticker.Stop()
+
+	// Send initial heartbeat immediately.
+	c.Heartbeat(ctx, agentID, client.HeartbeatRequest{Status: "online"})
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			c.Heartbeat(ctx, agentID, client.HeartbeatRequest{Status: "online"})
+		}
+	}
 }
 
 func printMCPUsage() {
