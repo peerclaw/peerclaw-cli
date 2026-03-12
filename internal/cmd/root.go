@@ -45,10 +45,6 @@ func Run(args []string) int {
 		return RunHealth(args[1:], serverURL)
 	case "config":
 		return RunConfig(args[1:])
-	case "dht":
-		return RunDHT(args[1:], serverURL)
-	case "federation":
-		return RunFederation(args[1:], serverURL)
 	case "reputation":
 		return RunReputation(args[1:], serverURL)
 	case "identity":
@@ -80,8 +76,6 @@ Commands:
   send        Send a message through the bridge
   health      Check server health
   config      Manage CLI configuration
-  dht         DHT operations (bootstrap, lookup)
-  federation  Federation management (status, peers)
   reputation  Reputation scores (show, list)
   identity    Identity anchoring (anchor, verify)
   mcp         MCP server for AI tool integration (serve)
