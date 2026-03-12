@@ -12,6 +12,9 @@ func addTokenFlag(fs *flag.FlagSet, token *string) {
 	fs.StringVar(token, "token", t, "JWT auth token (or PEERCLAW_TOKEN env)")
 }
 
+// Version is set by GoReleaser via ldflags at build time.
+var Version = "dev"
+
 const defaultServer = "http://localhost:8080"
 
 // Run executes the CLI with the given arguments.
@@ -61,7 +64,7 @@ func Run(args []string) int {
 		printUsage()
 		return 0
 	case "version":
-		fmt.Println("peerclaw version 0.5.0")
+		fmt.Printf("peerclaw version %s\n", Version)
 		return 0
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", args[0])

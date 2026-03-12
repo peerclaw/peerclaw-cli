@@ -69,7 +69,7 @@ func runMCPServe(args []string, serverURL string) int {
 	// Create MCP server.
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "peerclaw",
-		Version: "0.5.0",
+		Version: Version,
 	}, nil)
 
 	// Register available tools.
