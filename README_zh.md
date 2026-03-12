@@ -2,6 +2,8 @@
 
 # peerclaw-cli
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 PeerClaw 命令行工具。通过 REST API 与 PeerClaw Server 交互，管理 Agent、发送消息、检查服务状态。
 
 ## 安装

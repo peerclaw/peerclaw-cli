@@ -2,6 +2,8 @@
 
 # peerclaw-cli
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 The PeerClaw command-line tool. Interact with PeerClaw Server via REST API to manage agents, send messages, and check service status.
 
 ## Installation
