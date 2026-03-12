@@ -21,10 +21,14 @@ func Run(args []string) int {
 		return 1
 	}
 
-	// Global flags.
+	// Server URL priority: env var > config file > default.
 	serverURL := os.Getenv("PEERCLAW_SERVER")
 	if serverURL == "" {
-		serverURL = defaultServer
+		if cfg, err := loadCLIConfig(); err == nil && cfg.Server != "" {
+			serverURL = cfg.Server
+		} else {
+			serverURL = defaultServer
+		}
 	}
 
 	if err := validateServerURL(serverURL); err != nil {
