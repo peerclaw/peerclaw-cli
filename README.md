@@ -136,3 +136,9 @@ All list commands support the `-output` flag:
 ```bash
 peerclaw agent list -output json
 ```
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).
+
+Copyright 2025 PeerClaw Contributors.

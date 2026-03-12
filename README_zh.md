@@ -126,3 +126,9 @@ peerclaw health -output json
 ```bash
 peerclaw agent list -output json
 ```
+
+## 许可证
+
+基于 [Apache License 2.0](LICENSE) 开源。
+
+Copyright 2025 PeerClaw Contributors.
