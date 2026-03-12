@@ -110,8 +110,28 @@ func validateServerURL(rawURL string) error {
 	return nil
 }
 
+// serverURLValue is a flag.Value that validates the URL scheme on Set.
+type serverURLValue struct {
+	target *string
+}
+
+func (v *serverURLValue) String() string {
+	if v.target == nil {
+		return ""
+	}
+	return *v.target
+}
+
+func (v *serverURLValue) Set(s string) error {
+	if err := validateServerURL(s); err != nil {
+		return err
+	}
+	*v.target = s
+	return nil
+}
+
 func addServerFlag(fs *flag.FlagSet, serverURL *string) {
-	fs.StringVar(serverURL, "server", *serverURL, "PeerClaw server URL")
+	fs.Var(&serverURLValue{target: serverURL}, "server", "PeerClaw server URL")
 }
 
 func addOutputFlag(fs *flag.FlagSet) {
