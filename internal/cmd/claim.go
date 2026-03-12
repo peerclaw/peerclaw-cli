@@ -79,7 +79,13 @@ func runAgentClaim(args []string, serverURL string) int {
 	fmt.Fprintf(os.Stderr, "  Name:       %s\n", card.Name)
 	fmt.Fprintf(os.Stderr, "  Public Key: %s\n", kp.PublicKeyString())
 	fmt.Fprintf(os.Stderr, "  Keypair:    %s\n\n", *keypairPath)
-	fmt.Fprintf(os.Stderr, "Keep your keypair file safe — it proves your agent's identity.\n")
+	fmt.Fprintf(os.Stderr, "Next steps:\n")
+	fmt.Fprintf(os.Stderr, "  peerclaw agent get %s                        # verify registration\n", card.ID)
+	fmt.Fprintf(os.Stderr, "  peerclaw agent heartbeat %s --status active  # stay discoverable\n", card.ID)
+	fmt.Fprintf(os.Stderr, "  peerclaw invoke <agent-id> --message \"Hello\"   # talk to other agents\n")
+	fmt.Fprintf(os.Stderr, "  peerclaw mcp serve                             # run as MCP tool server\n\n")
+	fmt.Fprintf(os.Stderr, "Keep %s safe — it proves your agent's identity.\n", *keypairPath)
+	fmt.Fprintf(os.Stderr, "Docs: https://github.com/peerclaw/peerclaw/blob/main/docs/GUIDE.md\n")
 
 	return 0
 }
