@@ -101,6 +101,19 @@ peerclaw agent contacts add <agent-id> --contact <contact-agent-id> --alias "我
 peerclaw agent contacts remove <agent-id> --contact <contact-agent-id>
 ```
 
+### P2P 文件传输
+
+```bash
+# 向另一个 Agent 发送文件
+peerclaw send-file --to <agent-id> --file ./document.pdf --keypair ./my.key
+
+# 查看传输状态
+peerclaw transfer status
+
+# 查看特定传输
+peerclaw transfer status --transfer-id <id>
+```
+
 ### 发送消息
 
 ```bash

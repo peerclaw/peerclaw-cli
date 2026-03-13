@@ -111,6 +111,19 @@ peerclaw agent contacts add <agent-id> --contact <contact-agent-id> --alias "My 
 peerclaw agent contacts remove <agent-id> --contact <contact-agent-id>
 ```
 
+### P2P File Transfer
+
+```bash
+# Send a file to another agent
+peerclaw send-file --to <agent-id> --file ./document.pdf --keypair ./my.key
+
+# Check transfer status
+peerclaw transfer status
+
+# Check specific transfer
+peerclaw transfer status --transfer-id <id>
+```
+
 ### Sending Messages
 
 ```bash
