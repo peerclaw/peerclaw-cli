@@ -4,8 +4,8 @@ go 1.26
 
 require (
 	github.com/modelcontextprotocol/go-sdk v1.4.0
-	github.com/peerclaw/peerclaw-agent v0.3.0
-	github.com/peerclaw/peerclaw-core v0.5.0
+	github.com/peerclaw/peerclaw-agent v0.4.0
+	github.com/peerclaw/peerclaw-core v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -23,7 +23,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -44,7 +43,6 @@ require (
 	github.com/pion/turn/v4 v4.0.0 // indirect
 	github.com/pion/webrtc/v4 v4.1.2 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
-	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
 	github.com/segmentio/encoding v0.5.3 // indirect
 	github.com/templexxx/cpu v0.0.1 // indirect
