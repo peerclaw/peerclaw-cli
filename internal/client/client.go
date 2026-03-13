@@ -327,6 +327,72 @@ func (c *Client) RemoveContact(ctx context.Context, agentID, contactAgentID stri
 	return nil
 }
 
+// --- Contact Requests ---
+
+// ContactRequestResponse is a single contact request entry.
+type ContactRequestResponse struct {
+	ID           string `json:"id"`
+	FromAgentID  string `json:"from_agent_id"`
+	ToAgentID    string `json:"to_agent_id"`
+	Status       string `json:"status"`
+	Message      string `json:"message"`
+	RejectReason string `json:"reject_reason,omitempty"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
+}
+
+// ListContactRequestsResponse is the response from listing contact requests.
+type ListContactRequestsResponse struct {
+	Requests []ContactRequestResponse `json:"requests"`
+}
+
+// SendContactRequest sends a contact request from one agent to another.
+func (c *Client) SendContactRequest(ctx context.Context, agentID string, req map[string]string) (*ContactRequestResponse, error) {
+	var resp ContactRequestResponse
+	if err := c.post(ctx, "/api/v1/agents/"+agentID+"/contact-requests", req, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// ListIncomingContactRequests lists incoming contact requests for an agent.
+func (c *Client) ListIncomingContactRequests(ctx context.Context, agentID string) (*ListContactRequestsResponse, error) {
+	var resp ListContactRequestsResponse
+	if err := c.get(ctx, "/api/v1/agents/"+agentID+"/contact-requests/incoming", nil, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// ListSentContactRequests lists sent contact requests for an agent.
+func (c *Client) ListSentContactRequests(ctx context.Context, agentID string) (*ListContactRequestsResponse, error) {
+	var resp ListContactRequestsResponse
+	if err := c.get(ctx, "/api/v1/agents/"+agentID+"/contact-requests/sent", nil, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// UpdateContactRequest approves or rejects a contact request.
+func (c *Client) UpdateContactRequest(ctx context.Context, agentID, requestID string, body map[string]string) error {
+	reqURL := c.baseURL + "/api/v1/agents/" + agentID + "/contact-requests/" + requestID
+	data, _ := json.Marshal(body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqURL, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return c.readError(resp)
+	}
+	return nil
+}
+
 // --- Directory & Reputation ---
 
 // DirectoryAgent is the public profile of an agent from the directory.

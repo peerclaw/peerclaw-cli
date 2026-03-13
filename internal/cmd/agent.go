@@ -38,6 +38,8 @@ func RunAgent(args []string, serverURL string) int {
 		return runAgentUpdate(args[1:], serverURL)
 	case "contacts":
 		return RunContacts(args[1:], serverURL)
+	case "contact-requests":
+		return RunContactRequests(args[1:], serverURL)
 	case "help", "-h":
 		printAgentUsage()
 		return 0
@@ -61,7 +63,8 @@ Subcommands:
   heartbeat  Send heartbeat for an agent
   verify     Verify an agent's endpoint
   update     Update an existing agent
-  contacts   Manage agent contacts whitelist
+  contacts          Manage agent contacts whitelist
+  contact-requests  Manage agent-to-agent contact requests
 `)
 }
 
