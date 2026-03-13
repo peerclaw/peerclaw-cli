@@ -20,6 +20,7 @@ func RunSendFile(args []string, serverURL string) int {
 	filePath := fs.String("file", "", "Path to file to send (required)")
 	keypairPath := fs.String("keypair", "", "Path to Ed25519 keypair file")
 	trustStorePath := fs.String("trust-store", "", "Path to trust store file")
+	noRegister := fs.Bool("no-register", false, "Skip server registration (reuse existing identity)")
 	fs.Parse(args)
 
 	if *to == "" || *filePath == "" {
@@ -40,11 +41,12 @@ func RunSendFile(args []string, serverURL string) int {
 
 	// Create agent for P2P transfer.
 	a, err := agent.New(agent.Options{
-		Name:           "peerclaw-cli-sender",
-		ServerURL:      serverURL,
-		Capabilities:   []string{"file_transfer"},
-		KeypairPath:    *keypairPath,
-		TrustStorePath: *trustStorePath,
+		Name:             "peerclaw-cli-sender",
+		ServerURL:        serverURL,
+		Capabilities:     []string{"file_transfer"},
+		KeypairPath:      *keypairPath,
+		TrustStorePath:   *trustStorePath,
+		SkipRegistration: *noRegister,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating agent: %v\n", err)
