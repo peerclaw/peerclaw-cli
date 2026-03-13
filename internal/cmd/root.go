@@ -56,6 +56,10 @@ func Run(args []string) int {
 		return RunReputation(args[1:], serverURL)
 	case "identity":
 		return RunIdentity(args[1:], serverURL)
+	case "send-file":
+		return RunSendFile(args[1:], serverURL)
+	case "transfer":
+		return RunTransfer(args[1:], serverURL)
 	case "mcp":
 		return RunMCP(args[1:], serverURL)
 	case "acp":
@@ -84,6 +88,8 @@ Commands:
   health      Check server health
   config      Manage CLI configuration
   reputation  Reputation scores (show, list)
+  send-file   Send a file to another agent (P2P)
+  transfer    Manage file transfers (status)
   identity    Identity anchoring (anchor, verify)
   mcp         MCP server for AI tool integration (serve)
   acp         ACP stdio bridge for agent communication (serve)
