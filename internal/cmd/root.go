@@ -64,6 +64,8 @@ func Run(args []string) int {
 		return RunMCP(args[1:], serverURL)
 	case "acp":
 		return RunACP(args[1:], serverURL)
+	case "notifications":
+		return RunNotifications(args[1:], serverURL)
 	case "help", "-h", "--help":
 		printUsage()
 		return 0
@@ -93,6 +95,7 @@ Commands:
   identity    Identity anchoring (anchor, verify)
   mcp         MCP server for AI tool integration (serve)
   acp         ACP stdio bridge for agent communication (serve)
+  notifications Manage notifications (list, count, read, read-all)
   version     Print version
 
 Environment:

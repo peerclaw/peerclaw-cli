@@ -587,6 +587,69 @@ func (c *Client) ListMyAccessRequests(ctx context.Context, token string) ([]Acce
 	return resp.Requests, nil
 }
 
+// --- Notifications ---
+
+// NotificationResponse is a notification record.
+type NotificationResponse struct {
+	ID        string            `json:"id"`
+	UserID    string            `json:"user_id"`
+	AgentID   string            `json:"agent_id"`
+	Type      string            `json:"type"`
+	Severity  string            `json:"severity"`
+	Title     string            `json:"title"`
+	Body      string            `json:"body"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	Read      bool              `json:"read"`
+	CreatedAt string            `json:"created_at"`
+}
+
+// NotificationListResponse is the response from listing notifications.
+type NotificationListResponse struct {
+	Notifications []NotificationResponse `json:"notifications"`
+	Total         int                    `json:"total"`
+	UnreadCount   int                    `json:"unread_count"`
+}
+
+// ListNotifications lists notifications for the current user.
+func (c *Client) ListNotifications(ctx context.Context, token string, limit int, unreadOnly bool) (*NotificationListResponse, error) {
+	params := url.Values{}
+	if limit > 0 {
+		params.Set("limit", fmt.Sprintf("%d", limit))
+	}
+	if unreadOnly {
+		params.Set("unread_only", "true")
+	}
+	var resp NotificationListResponse
+	if err := c.getAuth(ctx, "/api/v1/provider/notifications", token, params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// NotificationCountResponse is the response from the notification count endpoint.
+type NotificationCountResponse struct {
+	UnreadCount int `json:"unread_count"`
+}
+
+// NotificationCount returns the unread notification count.
+func (c *Client) NotificationCount(ctx context.Context, token string) (int, error) {
+	var resp NotificationCountResponse
+	if err := c.getAuth(ctx, "/api/v1/provider/notifications/count", token, nil, &resp); err != nil {
+		return 0, err
+	}
+	return resp.UnreadCount, nil
+}
+
+// MarkNotificationRead marks a single notification as read.
+func (c *Client) MarkNotificationRead(ctx context.Context, token, id string) error {
+	return c.putAuth(ctx, "/api/v1/provider/notifications/"+id+"/read", token, nil, nil)
+}
+
+// MarkAllNotificationsRead marks all notifications as read.
+func (c *Client) MarkAllNotificationsRead(ctx context.Context, token string) error {
+	return c.putAuth(ctx, "/api/v1/provider/notifications/read-all", token, nil, nil)
+}
+
 // --- Agent Update ---
 
 // UpdateAgent updates an existing agent's registration.
