@@ -68,6 +68,7 @@ func runAgentClaim(args []string, serverURL string) int {
 		Protocols:    protos,
 		Endpoint:     client.EndpointReq{URL: *endpointURL},
 		Signature:    sig,
+		Metadata:     map[string]string{"sdk_version": Version},
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

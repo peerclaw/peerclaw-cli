@@ -162,6 +162,7 @@ func runAgentRegister(args []string, serverURL string) int {
 		Capabilities: caps,
 		Protocols:    strings.Split(*protocols, ","),
 		Endpoint:     client.EndpointReq{URL: *endpointURL},
+		Metadata:     map[string]string{"sdk_version": Version},
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

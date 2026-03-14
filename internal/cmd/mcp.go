@@ -220,15 +220,20 @@ func runAutoHeartbeat(ctx context.Context, serverURL, agentID string) {
 	ticker := time.NewTicker(3 * time.Minute)
 	defer ticker.Stop()
 
+	hbReq := client.HeartbeatRequest{
+		Status:   "online",
+		Metadata: map[string]string{"sdk_version": Version},
+	}
+
 	// Send initial heartbeat immediately.
-	c.Heartbeat(ctx, agentID, client.HeartbeatRequest{Status: "online"})
+	c.Heartbeat(ctx, agentID, hbReq)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			c.Heartbeat(ctx, agentID, client.HeartbeatRequest{Status: "online"})
+			c.Heartbeat(ctx, agentID, hbReq)
 		}
 	}
 }

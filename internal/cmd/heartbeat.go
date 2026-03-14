@@ -23,7 +23,8 @@ func runAgentHeartbeat(args []string, serverURL string) int {
 	agentID := fs.Arg(0)
 	c := client.New(serverURL)
 	resp, err := c.Heartbeat(context.Background(), agentID, client.HeartbeatRequest{
-		Status: *status,
+		Status:   *status,
+		Metadata: map[string]string{"sdk_version": Version},
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
