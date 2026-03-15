@@ -14,13 +14,13 @@ import (
 func runAgentHeartbeat(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("agent heartbeat", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
-	status := fs.String("status", "online", "Agent status (online, degraded)")
+	status := fs.String("status", "online", "Agent status (online, busy, degraded, offline)")
 	loop := fs.Bool("loop", false, "Send heartbeats continuously")
 	interval := fs.Duration("interval", 30*time.Second, "Heartbeat interval (used with --loop)")
 	fs.Parse(args)
 
 	if fs.NArg() < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent heartbeat <agent-id> [--status online|degraded] [--loop] [--interval 30s]\n")
+		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent heartbeat <agent-id> [--status online|busy|degraded|offline] [--loop] [--interval 30s]\n")
 		return 1
 	}
 
