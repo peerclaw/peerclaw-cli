@@ -66,6 +66,8 @@ func Run(args []string) int {
 		return RunACP(args[1:], serverURL)
 	case "notifications":
 		return RunNotifications(args[1:], serverURL)
+	case "completion":
+		return RunCompletion(args[1:])
 	case "help", "-h", "--help":
 		printUsage()
 		return 0
@@ -96,6 +98,7 @@ Commands:
   mcp         MCP server for AI tool integration (serve)
   acp         ACP stdio bridge for agent communication (serve)
   notifications Manage notifications (list, count, read, read-all)
+  completion  Generate shell completion (bash, zsh, fish)
   version     Print version
 
 Environment:
