@@ -48,7 +48,11 @@ func runAgentClaim(args []string, serverURL string) int {
 	}
 
 	// Sign the token to prove key ownership.
-	sig := identity.Sign(kp.PrivateKey, []byte(*token))
+	sig, err := identity.Sign(kp.PrivateKey, []byte(*token))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error signing token: %v\n", err)
+		return 1
+	}
 
 	var caps []string
 	if *capabilities != "" {
