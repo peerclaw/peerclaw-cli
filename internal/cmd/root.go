@@ -67,6 +67,8 @@ func Run(args []string) int {
 		return RunACP(args[1:], serverURL)
 	case "notifications":
 		return RunNotifications(args[1:], serverURL)
+	case "service":
+		return RunService(args[1:], serverURL)
 	case "completion":
 		return RunCompletion(args[1:])
 	case "help", "-h", "--help":
@@ -99,6 +101,7 @@ Commands:
   mcp         MCP server for AI tool integration (serve)
   acp         ACP stdio bridge for agent communication (serve)
   notifications Manage notifications (list, count, read, read-all)
+  service     Manage OS-level agent service (install, uninstall, status, logs)
   completion  Generate shell completion (bash, zsh, fish)
   version     Print version
 

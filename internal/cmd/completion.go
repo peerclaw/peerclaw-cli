@@ -34,7 +34,7 @@ _peerclaw() {
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-    commands="agent invoke inbox send health config reputation identity send-file transfer mcp acp notifications completion version help"
+    commands="agent invoke inbox send health config reputation identity send-file transfer mcp acp notifications service completion version help"
     agent_sub="list get register claim delete update discover heartbeat verify"
     inbox_sub="request status list"
     config_sub="set get list"
@@ -42,6 +42,7 @@ _peerclaw() {
     identity_sub="anchor verify"
     notifications_sub="list count read read-all"
     transfer_sub="status"
+    service_sub="install uninstall status logs"
 
     case "${prev}" in
         peerclaw)
@@ -76,6 +77,10 @@ _peerclaw() {
             COMPREPLY=($(compgen -W "${transfer_sub}" -- "${cur}"))
             return 0
             ;;
+        service)
+            COMPREPLY=($(compgen -W "${service_sub}" -- "${cur}"))
+            return 0
+            ;;
         completion)
             COMPREPLY=($(compgen -W "bash zsh fish" -- "${cur}"))
             return 0
@@ -96,7 +101,7 @@ const zshCompletion = `#compdef peerclaw
 # Add to ~/.zshrc: eval "$(peerclaw completion zsh)"
 
 _peerclaw() {
-    local -a commands agent_sub inbox_sub config_sub reputation_sub identity_sub notifications_sub transfer_sub
+    local -a commands agent_sub inbox_sub config_sub reputation_sub identity_sub notifications_sub transfer_sub service_sub
 
     commands=(
         'agent:Manage agents'
@@ -112,6 +117,7 @@ _peerclaw() {
         'mcp:MCP server for AI tool integration'
         'acp:ACP stdio bridge'
         'notifications:Manage notifications'
+        'service:Manage OS-level agent service'
         'completion:Generate shell completion'
         'version:Print version'
         'help:Show help'
@@ -124,6 +130,7 @@ _peerclaw() {
     identity_sub=(anchor verify)
     notifications_sub=(list count read read-all)
     transfer_sub=(status)
+    service_sub=(install uninstall status logs)
 
     _arguments -C \
         '1:command:->command' \
@@ -142,6 +149,7 @@ _peerclaw() {
                 identity) _describe 'subcommand' identity_sub ;;
                 notifications) _describe 'subcommand' notifications_sub ;;
                 transfer) _describe 'subcommand' transfer_sub ;;
+                service) _describe 'subcommand' service_sub ;;
                 completion) _describe 'shell' '(bash zsh fish)' ;;
             esac
             ;;
@@ -172,6 +180,7 @@ complete -c peerclaw -n '__fish_use_subcommand' -a 'transfer' -d 'Manage file tr
 complete -c peerclaw -n '__fish_use_subcommand' -a 'mcp' -d 'MCP server for AI tool integration'
 complete -c peerclaw -n '__fish_use_subcommand' -a 'acp' -d 'ACP stdio bridge'
 complete -c peerclaw -n '__fish_use_subcommand' -a 'notifications' -d 'Manage notifications'
+complete -c peerclaw -n '__fish_use_subcommand' -a 'service' -d 'Manage OS-level agent service'
 complete -c peerclaw -n '__fish_use_subcommand' -a 'completion' -d 'Generate shell completion'
 complete -c peerclaw -n '__fish_use_subcommand' -a 'version' -d 'Print version'
 complete -c peerclaw -n '__fish_use_subcommand' -a 'help' -d 'Show help'
@@ -196,6 +205,9 @@ complete -c peerclaw -n '__fish_seen_subcommand_from notifications' -a 'list cou
 
 # transfer subcommands.
 complete -c peerclaw -n '__fish_seen_subcommand_from transfer' -a 'status'
+
+# service subcommands.
+complete -c peerclaw -n '__fish_seen_subcommand_from service' -a 'install uninstall status logs'
 
 # completion subcommands.
 complete -c peerclaw -n '__fish_seen_subcommand_from completion' -a 'bash zsh fish'
