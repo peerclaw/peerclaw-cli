@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 )
 
 func addTokenFlag(fs *flag.FlagSet, token *string) {
@@ -149,4 +150,47 @@ func addServerFlag(fs *flag.FlagSet, serverURL *string) {
 
 func addOutputFlag(fs *flag.FlagSet) {
 	fs.StringVar(&outputFormat, "output", "table", "Output format (table or json)")
+}
+
+// reorderArgs moves positional arguments after all flags so that Go's
+// flag.Parse (which stops at the first non-flag argument) processes
+// all flags correctly regardless of argument order.
+//
+// Example: ["agent-id", "--loop", "--status", "online"]
+// becomes: ["--loop", "--status", "online", "agent-id"]
+func reorderArgs(fs *flag.FlagSet, args []string) []string {
+	var flags, positional []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if !strings.HasPrefix(arg, "-") {
+			positional = append(positional, arg)
+			continue
+		}
+
+		flags = append(flags, arg)
+
+		// Check if value is embedded (-flag=value).
+		name := strings.TrimLeft(arg, "-")
+		if strings.Contains(name, "=") {
+			continue
+		}
+
+		// Look up the flag to see if it takes a value.
+		f := fs.Lookup(name)
+		if f == nil {
+			continue // unknown flag — let flag.Parse report the error
+		}
+
+		// Boolean flags don't consume the next argument.
+		if bf, ok := f.Value.(interface{ IsBoolFlag() bool }); ok && bf.IsBoolFlag() {
+			continue
+		}
+
+		// Non-boolean flag — next arg is the value.
+		if i+1 < len(args) {
+			i++
+			flags = append(flags, args[i])
+		}
+	}
+	return append(flags, positional...)
 }

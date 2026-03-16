@@ -12,7 +12,7 @@ import (
 func runAgentVerify(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("agent verify", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent verify <agent-id>\n")

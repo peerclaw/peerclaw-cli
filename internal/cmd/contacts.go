@@ -50,7 +50,7 @@ func runContactsList(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("agent contacts list", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
 	addOutputFlag(fs)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contacts list <agent-id>\n")
@@ -85,7 +85,7 @@ func runContactsAdd(args []string, serverURL string) int {
 	addServerFlag(fs, &serverURL)
 	contact := fs.String("contact", "", "Contact agent ID to add (required)")
 	alias := fs.String("alias", "", "Optional alias for the contact")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contacts add <agent-id> --contact <contact-agent-id> [--alias \"name\"]\n")
@@ -116,7 +116,7 @@ func runContactsRemove(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("agent contacts remove", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
 	contact := fs.String("contact", "", "Contact agent ID to remove (required)")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contacts remove <agent-id> --contact <contact-agent-id>\n")

@@ -113,7 +113,7 @@ func runAgentGet(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("agent get", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
 	addOutputFlag(fs)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent get <agent-id>\n")
@@ -177,7 +177,7 @@ func runAgentRegister(args []string, serverURL string) int {
 func runAgentDelete(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("agent delete", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent delete <agent-id>\n")
@@ -205,7 +205,7 @@ func runAgentUpdate(args []string, serverURL string) int {
 	capabilities := fs.String("capabilities", "", "Comma-separated capabilities")
 	endpointURL := fs.String("url", "", "New endpoint URL")
 	protocols := fs.String("protocols", "", "Comma-separated protocols")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent update <agent-id> [options]\n")

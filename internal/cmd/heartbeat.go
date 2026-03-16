@@ -17,7 +17,7 @@ func runAgentHeartbeat(args []string, serverURL string) int {
 	status := fs.String("status", "online", "Agent status (online, busy, degraded, offline)")
 	loop := fs.Bool("loop", false, "Send heartbeats continuously")
 	interval := fs.Duration("interval", 30*time.Second, "Heartbeat interval (used with --loop)")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent heartbeat <agent-id> [--status online|busy|degraded|offline] [--loop] [--interval 30s]\n")

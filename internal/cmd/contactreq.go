@@ -51,7 +51,7 @@ func runContactReqSend(args []string, serverURL string) int {
 	addServerFlag(fs, &serverURL)
 	target := fs.String("target", "", "Target agent ID (required)")
 	message := fs.String("message", "", "Optional message")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contact-requests send <agent-id> --target <target-id>\n")
@@ -83,7 +83,7 @@ func runContactReqList(args []string, serverURL string) int {
 	addServerFlag(fs, &serverURL)
 	addOutputFlag(fs)
 	direction := fs.String("direction", "incoming", "Direction: incoming or sent")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contact-requests list <agent-id> [--direction incoming|sent]\n")
@@ -127,7 +127,7 @@ func runContactReqApprove(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("contact-requests approve", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
 	requestID := fs.String("request", "", "Request ID (required)")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contact-requests approve <agent-id> --request <request-id>\n")
@@ -156,7 +156,7 @@ func runContactReqReject(args []string, serverURL string) int {
 	addServerFlag(fs, &serverURL)
 	requestID := fs.String("request", "", "Request ID (required)")
 	reason := fs.String("reason", "", "Rejection reason")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw agent contact-requests reject <agent-id> --request <request-id>\n")

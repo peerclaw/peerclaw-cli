@@ -119,7 +119,7 @@ func runNotificationsRead(args []string, serverURL string) int {
 	addServerFlag(fs, &serverURL)
 	var token string
 	addTokenFlag(fs, &token)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw notifications read <notification-id>\n")

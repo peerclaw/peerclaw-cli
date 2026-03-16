@@ -135,7 +135,7 @@ func runIdentityAnchor(args []string, serverURL string) int {
 func runIdentityVerify(args []string, serverURL string) int {
 	fs := flag.NewFlagSet("identity verify", flag.ExitOnError)
 	addServerFlag(fs, &serverURL)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw identity verify <agent-id>\n")

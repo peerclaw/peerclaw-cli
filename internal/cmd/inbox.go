@@ -54,7 +54,7 @@ func runInboxRequest(args []string, serverURL string) int {
 	addTokenFlag(fs, &token)
 	message := fs.String("message", "", "Access request message")
 	fs.StringVar(message, "m", "", "Access request message (shorthand)")
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw inbox request <agent-id> [options]\n")
@@ -84,7 +84,7 @@ func runInboxStatus(args []string, serverURL string) int {
 	addServerFlag(fs, &serverURL)
 	var token string
 	addTokenFlag(fs, &token)
-	fs.Parse(args)
+	fs.Parse(reorderArgs(fs, args))
 
 	if fs.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: peerclaw inbox status <agent-id>\n")
