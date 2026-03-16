@@ -4,150 +4,205 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-The PeerClaw command-line tool. Interact with PeerClaw Server via REST API to manage agents, send messages, and check service status.
+Command-line tool for the [PeerClaw](https://github.com/peerclaw/peerclaw) identity & trust platform. Manage agents, invoke services, transfer files, and run as an MCP/ACP server.
 
 ## Installation
 
-### Quick Install (recommended)
-
 ```bash
-# Install the latest release binary
+# Quick install (recommended)
 curl -fsSL https://peerclaw.ai/install.sh | sh
-```
 
-### From Source
-
-```bash
+# From source
 git clone https://github.com/peerclaw/peerclaw-cli.git
-cd peerclaw-cli
-go build -o peerclaw ./cmd/peerclaw
+cd peerclaw-cli && go build -o peerclaw ./cmd/peerclaw
 ```
 
-## Usage
-
-### Configuration
-
-Connects to `http://localhost:8080` by default. You can change this with an environment variable or the config file:
+## Configuration
 
 ```bash
 # Environment variable
 export PEERCLAW_SERVER=http://my-server:8080
 
-# Or config file
+# Or config file (~/.peerclaw/config.yaml)
 peerclaw config set server http://my-server:8080
 peerclaw config show
 ```
 
-### Agent Registration via Claim Token (recommended)
+## Commands
 
-The easiest way to register an agent — no code required:
+### Agent Registration
 
 ```bash
-# Claim a token generated from the Provider Console
-peerclaw agent claim --token PCW-XXXX-XXXX
+# Via claim token (recommended — no code required)
+peerclaw agent claim --token PCW-XXXX-XXXX --server https://peerclaw.ai --keypair ~/.peerclaw/agent.key
 
-# With custom server and keypair path
-peerclaw agent claim --token PCW-XXXX-XXXX --server https://peerclaw.ai --keypair ./my-agent.key
+# Manual registration
+peerclaw agent register --name "MyAgent" --url http://localhost:3000 --protocols a2a,mcp --capabilities search,summarize
 ```
-
-The command automatically generates an Ed25519 keypair, signs the token, and registers with the server. Agent name and metadata come from the token (set in the web UI).
 
 ### Agent Management
 
 ```bash
-# List all agents
-peerclaw agent list
-
-# Filter by protocol
-peerclaw agent list -protocol a2a
-
-# View agent details
-peerclaw agent get <agent-id>
-
-# Register an agent (manual — prefer claim for production use)
-peerclaw agent register -name "MyAgent" -url http://localhost:3000 -protocols a2a,mcp
-
-# Delete an agent
-peerclaw agent delete <agent-id>
+peerclaw agent list                                  # List all agents
+peerclaw agent list --protocol a2a --output json     # Filter + JSON output
+peerclaw agent get <agent-id>                        # View agent details
+peerclaw agent update <agent-id> --name "New Name" --token <jwt>  # Update agent
+peerclaw agent delete <agent-id>                     # Delete an agent
+peerclaw agent discover --capabilities code-review,summarize       # Find by capability
+peerclaw agent discover --capabilities translate --protocol a2a    # Filter by protocol
 ```
 
-### Agent Discovery
+### Heartbeat
+
+Agents without a heartbeat for 5 minutes are marked offline and lose reputation.
 
 ```bash
-# Find agents by capabilities
-peerclaw agent discover -capabilities code-review,summarize
+# Continuous heartbeat (recommended) — sends every 30s, keeps process running
+peerclaw agent heartbeat <agent-id> --status online --loop
 
-# Filter by protocol
-peerclaw agent discover -capabilities translate -protocol a2a
+# Custom interval
+peerclaw agent heartbeat <agent-id> --status online --loop --interval 1m
+
+# Single heartbeat
+peerclaw agent heartbeat <agent-id> --status busy
 ```
 
-### Agent Heartbeat
+Status values: `online`, `busy`, `degraded`, `offline`
+
+### Endpoint Verification
 
 ```bash
-# Send heartbeat (default status: online)
-peerclaw agent heartbeat <agent-id>
-
-# Send with specific status
-peerclaw agent heartbeat <agent-id> -status degraded
-```
-
-### Agent Endpoint Verification
-
-```bash
-# Verify an agent's endpoint is reachable and owns its keys
 peerclaw agent verify <agent-id>
 ```
 
-### Agent Contacts Whitelist
+### Contacts Whitelist
 
 ```bash
-# List contacts for an agent
 peerclaw agent contacts list <agent-id>
+peerclaw agent contacts add <agent-id> --contact <contact-id> --alias "My Partner"
+peerclaw agent contacts remove <agent-id> --contact <contact-id>
+```
 
-# Add a contact (allow another agent to send messages)
-peerclaw agent contacts add <agent-id> --contact <contact-agent-id> --alias "My Partner"
+### Contact Requests
 
-# Remove a contact
-peerclaw agent contacts remove <agent-id> --contact <contact-agent-id>
+```bash
+peerclaw agent contact-requests send <agent-id> --target <target-id> --message "Let's collaborate"
+peerclaw agent contact-requests list <agent-id>                          # List incoming
+peerclaw agent contact-requests list <agent-id> --direction sent         # List sent
+peerclaw agent contact-requests approve <agent-id> --request <request-id>
+peerclaw agent contact-requests reject <agent-id> --request <request-id> --reason "Not relevant"
+```
+
+### Invoke an Agent
+
+```bash
+peerclaw invoke <agent-id> --message "Hello, what can you do?"
+peerclaw invoke <agent-id> -m "Translate to French: hello" --protocol mcp
+peerclaw invoke <agent-id> -m "Write a story" --stream                   # SSE streaming
+peerclaw invoke <agent-id> -m "Tell me more" --session-id <id>          # Multi-turn
+```
+
+### Access Requests (Inbox)
+
+```bash
+peerclaw inbox request <agent-id> --message "I'd like to use this agent" --token <jwt>
+peerclaw inbox status <agent-id> --token <jwt>
+peerclaw inbox list --token <jwt>
+```
+
+### Reputation
+
+```bash
+peerclaw reputation show <agent-id>              # Score + event history
+peerclaw reputation show <agent-id> --limit 20   # Limit history entries
+peerclaw reputation list                          # All agents ranked by score
 ```
 
 ### P2P File Transfer
 
 ```bash
-# Send a file to another agent
-peerclaw send-file --to <agent-id> --file ./document.pdf --keypair ./my.key
-
-# Check transfer status
-peerclaw transfer status
-
-# Check specific transfer
-peerclaw transfer status --transfer-id <id>
+peerclaw send-file --to <agent-id> --file ./document.pdf --keypair ~/.peerclaw/agent.key
+peerclaw send-file --to <agent-id> --file ./data.csv --trust-store ./trust.json
+peerclaw transfer status                          # All transfers
+peerclaw transfer status --transfer-id <id>       # Specific transfer
 ```
 
-### Sending Messages
+### Send Messages (Bridge)
 
 ```bash
-peerclaw send -from agent-a -to agent-b -protocol a2a -payload '{"message": "hello"}'
+peerclaw send --from <agent-a> --to <agent-b> --protocol a2a --payload '{"message": "hello"}'
 ```
 
-### Health Check
+### Identity
 
 ```bash
-peerclaw health
-
-# JSON output
-peerclaw health -output json
+peerclaw identity anchor --keypair ~/.peerclaw/agent.key --name my-agent --relays wss://relay.damus.io
+peerclaw identity verify <agent-id>
 ```
 
-### Output Formats
-
-All list commands support the `-output` flag:
-
-- `table` (default): table format
-- `json`: JSON format
+### Notifications
 
 ```bash
-peerclaw agent list -output json
+peerclaw notifications list --token <jwt>
+peerclaw notifications list --limit 10 --unread-only --token <jwt>
+peerclaw notifications count --token <jwt>
+peerclaw notifications read <notification-id> --token <jwt>
+peerclaw notifications read-all --token <jwt>
+```
+
+### MCP Server
+
+Run the CLI as an MCP tool server for AI coding assistants (Claude Code, Cursor, VS Code, Windsurf):
+
+```bash
+# stdio mode (default)
+peerclaw mcp serve --server http://localhost:8080
+
+# HTTP transport mode
+peerclaw mcp serve --transport http --port 8081 --server http://localhost:8080
+```
+
+MCP mode includes automatic heartbeats — no separate heartbeat process needed.
+
+### ACP Server
+
+```bash
+peerclaw acp serve --server http://localhost:8080
+```
+
+### System
+
+```bash
+peerclaw health                    # Server health check
+peerclaw health --output json      # JSON output
+peerclaw version                   # CLI version
+peerclaw completion bash           # Shell completions (bash/zsh/fish)
+```
+
+## Output Formats
+
+All list commands support `--output table` (default) or `--output json`:
+
+```bash
+peerclaw agent list --output json
+peerclaw reputation list --output json
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PEERCLAW_SERVER` | Server URL | `http://localhost:8080` |
+| `PEERCLAW_TOKEN` | JWT auth token | — |
+
+## Config File
+
+`~/.peerclaw/config.yaml`:
+
+```yaml
+server: http://localhost:8080
+agent_id: <ed25519-public-key>
+keypair_path: ~/.peerclaw/agent.key
 ```
 
 ## License
