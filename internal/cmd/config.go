@@ -45,7 +45,7 @@ func saveCLIConfig(cfg *CLIConfig) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(configPath(), data, 0644)
+	return os.WriteFile(configPath(), data, 0600)
 }
 
 // RunConfig handles the "config" subcommand.
