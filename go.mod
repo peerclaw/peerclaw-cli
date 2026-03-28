@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/modelcontextprotocol/go-sdk v1.4.0
-	github.com/peerclaw/peerclaw-agent v0.7.3
+	github.com/peerclaw/peerclaw-agent v0.7.4
 	github.com/peerclaw/peerclaw-core v0.8.1
 	gopkg.in/yaml.v3 v3.0.1
 )
